@@ -301,11 +301,13 @@ void  Program::comput_CFG(){
   Function *current;
   it=_myfunc.begin();
   int size=(int)_myfunc.size();
+
   for(int i=0; i<size; i++){ // parcours des functions du programme
     current=*it;
       
     // A REMPLIR 
-      
+    Cfg *cfg = new Cfg(current->get_firstBB(), current->nbr_BB());
+    _myCFG.push_back(cfg);      
 
     it++;
   }

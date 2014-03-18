@@ -31,7 +31,7 @@ int main(int argc, char * argv[]){
    cout<<"Le programme a "<<prog.size()<<" lignes\n"<<endl;
 
    cout<<"Contenu du programme:"<<endl;
-   prog.display();
+   //prog.display();
    prog.in_file("tmp/restit.txt");
 
    cout<<"\n Calcul des fonctions des block de base et restitution\n"<<endl;
@@ -54,7 +54,7 @@ int main(int argc, char * argv[]){
       functmp->comput_label();
       
       for(int j=0; j<functmp->nbr_BB(); j++){
-	 functmp->get_BB(j)->display();
+	//functmp->get_BB(j)->display();
       }
       
       functmp->comput_succ_pred_BB();
@@ -64,7 +64,7 @@ int main(int argc, char * argv[]){
 	
 		
       cout<<"------------Function "<< (i+1) <<"/"<<prog.nbr_func()<<" DISPLAY----------\n" <<endl;
-      functmp->test();
+      //functmp->test();
       graph->display(NULL);
    }
 //   graph->restitution(NULL,"./tmp/graph.dot");

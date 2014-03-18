@@ -19,7 +19,7 @@ int main(int argc, char ** argv){
     return -1;
   }
   Program p2(argv[1]) ;
-  p2.display() ;
+  // p2.display() ;
 
  
 
@@ -37,7 +37,7 @@ int main(int argc, char ** argv){
   */
   
   /* TEST DU CALCUL DES BB d'une fonction */
-  /* Pour tester le calcul des BB d'une fonction */ 
+  /* Pour tester le calcul des BB d'une fonction *
   Function * fct = p2.get_function(2);
   fct -> comput_basic_block(); 
   fct -> display();
@@ -45,30 +45,55 @@ int main(int argc, char ** argv){
     cout << "Block n° " << i << " :\n";
     fct->get_BB(i)->display();
     cout << "\n";
-  }
+    }
+  */
   
   
   /* EXEMPLE DE TEST */
   /* Pour tester le calcul des blocs de bases puis du calcul des BB pred/succ des BB */ 
+  int f_traite = 2;
+  if (p2.nbr_func() < f_traite){
+    fprintf(stderr, "Fonction traite sup au nbr de fct\n");
+    exit(1);
+  }
   
+  Function * fct = p2.get_function(f_traite);
+  fct -> comput_basic_block(); 
+  fct -> comput_succ_pred_BB();
+  //fct -> test(); 
 
-  /* 
-
-     Function * fct = p2.get_function(0);
-     fct -> comput_basic_block(); 
-     fct -> comput_succ_pred();
-     fct -> test(); 
-
-  */
-
-
+  
+  
+  
   /* TEST DE LA CONSTRUCTION DES CFG et donc des succ/pred des BB */
-  /*  if (p2.nbr_func() > 0){
-      p2.get_function(0)->display();
-      p2.comput_CFG();
-      Cfg * cfg = p2.get_CFG(p2.nbr_func()>2?2:0);
-      cfg -> restitution(NULL,"./tmp/graph2.dot");
-      }
-  */
+  if (p2.nbr_func() > 0){
+    p2.get_function(f_traite)->display();
+    p2.comput_CFG();
+    Cfg * cfg = p2.get_CFG(f_traite);
+    cfg -> restitution(NULL,"./tmp/graph2.dot");
+  }/**/
+  
+  
+  /* BOUCLE DE TEST */
+  /* Pour tester le calcul des blocs de bases puis du calcul des BB pred/succ des BB *
+  for(int i = 0; i< p2.nbr_func(); i++) {  
+    Function * fct = p2.get_function(i);
+    fct -> comput_basic_block(); 
+    fct -> comput_succ_pred_BB();
+    //fct -> test(); 
+    
+    
+    
+    
+    /* TEST DE LA CONSTRUCTION DES CFG et donc des succ/pred des BB *
+    p2.get_function(i)->display();
+    p2.comput_CFG();
+    Cfg * cfg = p2.get_CFG(i);
+    char str[30];
+    sprintf(str, "./tmp/graph%d.dot", i);
+    cfg -> restitution(NULL,"./tmp/graph2.dot");
+  }
+  /**/
+  
   return 0;
 }

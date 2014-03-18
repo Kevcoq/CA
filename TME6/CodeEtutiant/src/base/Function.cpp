@@ -277,10 +277,36 @@ void Function::comput_succ_pred_BB(){
    it=_myBB.begin();   //1er BB
    //remarque : le dernier block n'a pas de successeurs
  
+   for(int i=0; i<size-1; i++) {
+     current = *it;
+     instr = current->get_instruction_at_index(current->get_nb_inst()-2);
 
-
+     // si saut
+     if(instr->is_branch()) {
+       // saut conditionnel
+       if(instr->is_cond_branch()) {
+	 // ajout suivant
+	 current->set_link_succ_pred(*(++it));
+	 // label = op3
+	 op = instr->get_op3();
+       }
+       else {
+	 // label = op1
+	 op = instr->get_op1();
+	 it++;
+       }
+       // ajout du label
+       succ = find_label_BB((dynamic_cast<OPLabel * > (op)));
+       current->set_link_succ_pred(succ);
+     } else {
+       // pas de saut, ajout suivant
+       current->set_link_succ_pred(*(++it));
+     }
+   }
+   
+   
    //A REMPLIR
-
+   
 
 }
 

@@ -348,24 +348,24 @@ int Basic_block::nb_cycles(){
 
 /* permet de tester des choses sur un bloc de base, par exemple permet d'afficher les BB successeurs et prédécesseurs (commentaire),  là ne fait rien qu'afficher le BB */
 void Basic_block::test(){
-   cout << "test du BB " << get_index() << endl;
+   cout << "\ntest du BB " << get_index() << endl;
    display();
 
-   /*
-   cout << "nb de successeur : " << get_nb_succ() << endl;
+   
+   cout << "\tnb de successeur : " << get_nb_succ() << endl;
    int nbsucc = get_nb_succ() ;
    if (nbsucc >= 1 && get_successor1())
-      cout << "succ1 : " << get_successor1()-> get_index();
+      cout << "\tsucc1 : " << get_successor1()-> get_index();
    if (nbsucc >= 2 && get_successor2())
-      cout << " succ2 : " << get_successor2()-> get_index();
-   cout << endl << "nb de predecesseurs : " << get_nb_pred() << endl ;
+      cout << " \tsucc2 : " << get_successor2()-> get_index();
+   cout << endl << "\tnb de predecesseurs : " << get_nb_pred() << endl ;
   
    int size=(int)_pred.size();
    for (int i = 0; i < size; i++){
       if (get_predecessor(i) != NULL)
-	 cout << "pred "<< i <<  " : " << get_predecessor(i)-> get_index() << "; ";
+	 cout << "\tpred "<< i <<  " : " << get_predecessor(i)-> get_index() << "; ";
    }
 
-   */
+   
    cout << endl;
 }
