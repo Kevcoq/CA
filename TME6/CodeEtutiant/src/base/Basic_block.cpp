@@ -308,21 +308,68 @@ void Basic_block::comput_pred_succ_dep(){
    Instruction *i_current=this->get_last_instruction();
    Instruction *itmp;
   
-   /*il faut faire ce qu'il faut pour remplir les listes 
+   /*il faut faire ce qu'il faut pour remplir les listes */
 
    list <dep*> _succ_dep; // instructions qui dépendent de this avec type de dep
-   list <dep*> _pred_dep; // instructions dont depend this avec type de dep
-   de la classe Instruction pour chacune des instructions du BB
+   list <dep*> _pred_dep; // instructions dont depend this avec type de dep de la classe Instruction pour chacune des instructions du BB
    
-   NB : la fonction add_dep_link ci-dessus peut vous être utile...
 
-  */ 
 
+   /*   NB : la fonction add_dep_link ci-dessus peut vous être utile...  */ 
+   for(;i_current != this->get_first_instruction();i_current=i_current->get_prev()) {
+     int waw_war= 0; // waw = 1, war = -1
+     bool raw1 = false, raw2 = false;
+     // waw | war | raw
+     for(itmp=i_current->get_prev(); itmp !=this->get_first_instruction(); itmp=itmp->get_prev()) {
+       if(waw_war != 1) {
+	 // WAW
+	 if(i_current->is_dep_WAW(itmp)) {
+	   if(waw_war == 0) {	     
+	     add_dep_link(itmp, i_current, WAW);
+	   }
+	   waw_war = 1;
+	 } else if(i_current->is_dep_WAR(itmp)) {
+	   // WAR
+	   add_dep_link(itmp, i_current, WAR);
+	 }
+       }
+       // RAW1
+       if(!raw1 && i_current->is_dep_RAW1(itmp)) {
+	 add_dep_link(itmp, i_current, RAW);
+	 raw1 = true;
+       }
+       // RAW2
+       if(!raw2 && i_current->is_dep_RAW2(itmp)) {
+	 add_dep_link(itmp, i_current, RAW);
+	 raw2 = true;
+       }
+
+       // break
+       if(waw_war == 1 && raw1 && raw2)
+	 break;
+     }
+
+     if(i_current->is_mem()) {
+       for(itmp=i_current->get_prev(); itmp !=this->get_first_instruction(); itmp=itmp->get_prev()) {
+	 if(i_current->is_dep_MEM(itmp)) {
+	   add_dep_link(itmp, i_current, MEMDEP);
+	 }
+       }
+     }
+   }
 
 
    //il faut  rattacher toute les instructions sans successeurs(dependances) 
    //au saut de fin de BB par une dépendance de controle si le BB se termine par un saut
-  
+   
+   // itmp = saut
+   if((itmp = this->get_last_instruction()->get_prev())->is_branch()) {
+     for(i_current = itmp->get_prev() ; i_current != this->get_first_instruction() ; i_current=i_current->get_prev()) {
+       if(i_current->get_nb_succ() == 0) {
+	 add_dep_link(i_current, itmp, CONTROL);
+       }
+     }
+   }
 }
 
 void Basic_block::set_link_succ_pred(Basic_block* succ){
