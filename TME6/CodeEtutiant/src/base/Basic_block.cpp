@@ -320,38 +320,38 @@ void Basic_block::comput_pred_succ_dep(){
      int waw_war= 0; // waw = 1, war = -1
      bool raw1 = false, raw2 = false;
      // waw | war | raw
-     for(itmp=i_current->get_prev(); itmp !=this->get_first_instruction(); itmp=itmp->get_prev()) {
+     for(itmp=i_current->get_prev() ;; itmp=itmp->get_prev()) {
        if(waw_war != 1) {
 	 // WAW
-	 if(i_current->is_dep_WAW(itmp)) {
+	 if(itmp->is_dep_WAW(i_current)) {
 	   if(waw_war == 0) {	     
 	     add_dep_link(itmp, i_current, WAW);
 	   }
 	   waw_war = 1;
-	 } else if(i_current->is_dep_WAR(itmp)) {
+	 } else if(itmp->is_dep_WAR(i_current)) {
 	   // WAR
 	   add_dep_link(itmp, i_current, WAR);
 	 }
        }
        // RAW1
-       if(!raw1 && i_current->is_dep_RAW1(itmp)) {
+       if(!raw1 && itmp->is_dep_RAW1(i_current)) {
 	 add_dep_link(itmp, i_current, RAW);
 	 raw1 = true;
        }
        // RAW2
-       if(!raw2 && i_current->is_dep_RAW2(itmp)) {
+       if(!raw2 && itmp->is_dep_RAW2(i_current)) {
 	 add_dep_link(itmp, i_current, RAW);
 	 raw2 = true;
        }
 
        // break
-       if(waw_war == 1 && raw1 && raw2)
+       if(waw_war == 1 && raw1 && raw2 || itmp ==this->get_first_instruction())
 	 break;
      }
 
      if(i_current->is_mem()) {
        for(itmp=i_current->get_prev(); itmp !=this->get_first_instruction(); itmp=itmp->get_prev()) {
-	 if(i_current->is_dep_MEM(itmp)) {
+	 if(itmp->is_dep_MEM(i_current)) {
 	   add_dep_link(itmp, i_current, MEMDEP);
 	 }
        }
@@ -395,7 +395,7 @@ int Basic_block::nb_cycles(){
 
 /* permet de tester des choses sur un bloc de base, par exemple permet d'afficher les BB successeurs et prédécesseurs (commentaire),  là ne fait rien qu'afficher le BB */
 void Basic_block::test(){
-   cout << "\ntest du BB " << get_index() << endl;
+  /*  cout << "\ntest du BB " << get_index() << endl;
    display();
 
    
@@ -412,7 +412,13 @@ void Basic_block::test(){
       if (get_predecessor(i) != NULL)
 	 cout << "\tpred "<< i <<  " : " << get_predecessor(i)-> get_index() << "; ";
    }
-
    
    cout << endl;
+  */
+  
+  comput_pred_succ_dep();
+  for(Instruction *i = get_first_instruction() ; i != get_last_instruction() ; i=i->get_next()) {
+    printf("->\t");
+    i->print_succ_dep();
+  }
 }

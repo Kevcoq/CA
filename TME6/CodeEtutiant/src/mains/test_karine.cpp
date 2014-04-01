@@ -51,7 +51,7 @@ int main(int argc, char ** argv){
   
   /* EXEMPLE DE TEST */
   /* Pour tester le calcul des blocs de bases puis du calcul des BB pred/succ des BB */ 
-  int f_traite = 2;
+  int f_traite = 0;
   if (p2.nbr_func() < f_traite){
     fprintf(stderr, "Fonction traite sup au nbr de fct\n");
     exit(1);
@@ -60,8 +60,13 @@ int main(int argc, char ** argv){
   Function * fct = p2.get_function(f_traite);
   fct -> comput_basic_block(); 
   fct -> comput_succ_pred_BB();
-  //fct -> test(); 
-
+  printf("\n\n");
+  for(int i =0; i<fct->nbr_BB();i++) {
+    Basic_block *bb = fct -> get_BB(i); 
+    printf("Test BB - %d\n",i);
+    bb->test();
+    printf("\n");
+  }
   
   
   
