@@ -78,6 +78,16 @@ public:
 */	
 	void display_sheduled_instr();
 
+
+	/* ****************** */
+	/* AJOUT */
+	/* ****************** */
+
+	void compute_nb_descendant();
+	void display_nb_descendant();
+
+
+
 private:
 	Basic_block *_bb;
 	list <Node_dfg*> list_node_dfg;

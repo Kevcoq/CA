@@ -7,7 +7,7 @@
 #include <Cfg.h>
 
 
-int main(int argc, char ** argv){
+int main ( int argc, char ** argv ) {
 	Program p2(argv[1]) ;
 	p2.display() ;
 	p2.comput_function();
@@ -22,6 +22,12 @@ int main(int argc, char ** argv){
 	  Dfg * dfg = new Dfg(BB);
 	  dfg->restitute(NULL,"./tmp/graph_dfg0.dot", true);
 	  cout << "temps critique : "<< dfg->get_critical_path() << endl;
+
+	  //
+	  dfg->compute_nb_descendant();
+	  dfg->display_nb_descendant();
+	  //
+
 	}
 	if (fct -> nbr_BB()  > 1){
 	  Basic_block * BB = fct -> get_BB(1);

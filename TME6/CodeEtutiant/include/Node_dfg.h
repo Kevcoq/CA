@@ -81,7 +81,6 @@ public:
 	int get_weight( );
 
 
-
 /**	\brief	set the number of descendant
  */
 	void set_nb_descendant(int);
@@ -100,6 +99,11 @@ public:
 	int get_tready();
 
 
+	/* AJOUTS */
+	int get_when_scheduled ();
+	void scheduled (int num);
+
+
 private:
 	list <Arc_t *> _arc;
 	list <Node_dfg *> _pred; //liste des noeuds predecesseurs
@@ -107,6 +111,9 @@ private:
 	int _nbr_descendant; // nombre de descendants
 	int _poids;   // poids dans le chemin critique
 	int _tready;  
+
+	// ajout
+	int _scheduled;
 	
 };
 

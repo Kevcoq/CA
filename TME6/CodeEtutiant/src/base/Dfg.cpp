@@ -284,7 +284,7 @@ void Dfg::comput_critical_path(){
   
   // parcourt racine
   list <Node_dfg*>::iterator it =_roots.begin();
-  for(int i=0; i<_roots.size(); i++, it++)
+  for(unsigned int i=0; i<_roots.size(); i++, it++)
     comput_path_aux(*it);
   
   
@@ -305,29 +305,138 @@ int Dfg::get_critical_path(){
   int max = 0;
 
   list <Node_dfg*>::iterator it =_roots.begin();
-  for(int i=0; i<_roots.size(); i++, it++)
+  for(unsigned int i=0; i<_roots.size(); i++, it++)
     if((*it)->get_weight() > max)
       max = (*it)->get_weight();
  
   return max;
 }
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-void  Dfg::scheduling(){
+
+
+// fonction auxiliaire de comput_nb_descendant
+int calcul_desc (Node_dfg *node) {
+  int res = node->get_nb_arcs();  // nb de succ directs
+  list <Arc_t*>::iterator it = node->arcs_begin();
+  
+  for (int i = 0 ; i<node->get_nb_arcs() ; i++, it++) {
+    res += calcul_desc((*it)->next);
+  }
+
+  node->set_nb_descendant(res);
+  return res;
 }
+
+// calcul le nombre de descendant de chaque Node
+void Dfg::compute_nb_descendant () {
+  
+  list <Node_dfg*>::iterator it = _roots.begin();
+  for (unsigned int i = 0 ; i<_roots.size() ; i++, it++) {
+    (*it)->set_nb_descendant(calcul_desc(*it));
+  }
+
+}
+
+
+void Dfg::display_nb_descendant () {
+  list <Node_dfg*>::iterator it = _roots.begin();
+
+  for (unsigned int i = 0 ; i<_roots.size() ; i++, it++) {
+    cout << *it << " : " << (*it)->get_nb_descendant();
+  }
+
+}
+
+
+// Ajoute dans _inst_ready les nouveaux noeuds prêts
+void add_node_now_ready () {
+  // TODO
+}
+
+
+
+/*
+ * peut-être pb si les affectations de liste ne sont 
+ * pas des copies (mais des pointeurs)...
+ */	
+	
+void Dfg::scheduling(){
+  /* FONCTION POUR LE PROJET */
+
+  // nombre de noeuds du graphe
+  int nb_node = _roots.size() + list_node_dfg.size() + _delayed_slot.size();
+  int cpt = 0;
+  list<Node_dfg*> tmp;
+  list<Node_dfg*>::iterator it;
+  list<Node_dfg*>::iterator it2;
+  list<Arc_t*>::iterator arc;
+
+  // liste des instructions prêtes
+  _inst_ready = _roots;
+
+  while (cpt < nb_node) {
+    tmp.clear();
+
+    /* A chaque règle, on insert dans tmp les instructions qui satisfont la règle,
+       s'il n'y en a plus qu'une, alors c'est celle-là ! sinon règle suivante */
+
+    /* Règle 1 
+       Instruction ne provoquant pas de cycle de gel
+    */
+
+    // it = noeud courant, it2 = noeuds prédecesseurs, arc = arcs des noeuds pred
+    it = _inst_ready.begin();
+    for (unsigned int i = 0 ; i<_inst_ready.size() ; i++, it++) {
+      it2 = (*it)->pred_begin();
+      for (int j = 0 ; j<(*it)->nb_preds() ; j++, it2++) {
+	arc = (*it2)->arcs_begin();
+	for (int k = 0 ; k<(*it2)->get_nb_arcs() ; k++, arc++) {
+	  if ((*arc)->next == *it) {
+	    if (!(((*arc)->delai != -1) && ((*arc)->delai + (*it2)->get_when_scheduled() > (cpt+1)))) {
+	      tmp.push_back(*it);
+	    }
+	  }
+	}
+      }
+    }
+
+    if (tmp.size() == 1) {
+      new_order.push_back(tmp.front());
+      add_node_now_ready();
+      cpt++;
+      continue;   // passage au tour du while suivant
+    }
+    
+    /* Règle 2 
+       Instruction avec le poids le plus élevé
+     */
+
+    /* Règle 3
+       Instruction avec la latence la plus élevée
+     */
+
+    /* Règle 4
+       Instruction avec le plus grand nombre de successeurs
+     */
+    
+    /* Règle 5
+       Instruction avec le plus grand nombre de descendants
+     */
+    
+    /* Règle 6
+       Instruction apparaissant en premier dans le code d'origine
+     */
+    
+    
+    cpt++;
+    } // while
+
+
+}
+
+
+
+
+
 	
 void Dfg::display_sheduled_instr(){
   list <Node_dfg*>::iterator it;
