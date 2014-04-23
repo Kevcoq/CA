@@ -348,16 +348,65 @@ void Dfg::display_nb_descendant () {
 
 
 // Ajoute dans _inst_ready les nouveaux noeuds prêts
-void add_node_now_ready () {
-  // TODO
+void Dfg::add_node_now_ready () {
+  list<Node_dfg*>::iterator it = list_node_dfg.begin();
+  list<Node_dfg*>::iterator it2;
+  bool add;
+
+  for (unsigned int i = 0 ; i<list_node_dfg.size() ; i++, it++) {
+    if (((*it)->get_tready() == -1) && !contains(&_inst_ready, *it)) {  // pas encore schedulé && pas déjà dans la liste
+      
+      add = true;
+      it2 = (*it)->pred_begin();  // iterator des prédécesseurs
+      for (int j = 0 ; j<(*it)->nb_preds() ; j++, it2++) {
+	if ((*it2)->get_tready() == -1) {
+	  add = false;
+	}
+      }
+      if (add) {
+	_inst_ready.push_back(*it);
+      }
+    }
+  }
 }
 
+
+/*
+ * Renvoie true si poids(n1) < poids(n2).
+ * Sert pour le tri.
+ * On fait bien < car on tri dans l'ordre décroissant.
+ */
+bool compareWeight (Node_dfg *n1, Node_dfg *n2) {
+  return n1->get_weight() < n2->get_weight();
+}
+
+bool compareLatency (Node_dfg *n1, Node_dfg *n2) {
+  return n1->get_instruction()->get_latency() < n2->get_instruction()->get_latency();
+}
+
+/* Le nombre de successeurs directs est le nombre d'arcs */
+bool compareNbSucc (Node_dfg *n1, Node_dfg *n2) {
+  return n1->get_nb_arcs() < n2->get_nb_arcs();
+}
+
+bool compareNbDesc (Node_dfg *n1, Node_dfg *n2) {
+  return n1->get_nb_descendant() < n2->get_nb_descendant();
+}
+
+/* ATTENTION, ce tri est CROISSANT */
+bool compareIndex (Node_dfg *n1, Node_dfg *n2) {
+  return n1->get_instruction()->get_index() > n2->get_instruction()->get_index();
+}
 
 
 /*
  * peut-être pb si les affectations de liste ne sont 
  * pas des copies (mais des pointeurs)...
  */	
+
+/*
+  TODO : changer tready par une autre variable
+ */
 	
 void Dfg::scheduling(){
   /* FONCTION POUR LE PROJET */
@@ -366,6 +415,7 @@ void Dfg::scheduling(){
   int nb_node = _roots.size() + list_node_dfg.size() + _delayed_slot.size();
   int cpt = 0;
   list<Node_dfg*> tmp;
+  list<Node_dfg*> tmp2;
   list<Node_dfg*>::iterator it;
   list<Node_dfg*>::iterator it2;
   list<Arc_t*>::iterator arc;
@@ -391,7 +441,7 @@ void Dfg::scheduling(){
 	arc = (*it2)->arcs_begin();
 	for (int k = 0 ; k<(*it2)->get_nb_arcs() ; k++, arc++) {
 	  if ((*arc)->next == *it) {
-	    if (!(((*arc)->delai != -1) && ((*arc)->delai + (*it2)->get_when_scheduled() > (cpt+1)))) {
+	    if (!(((*arc)->delai != -1) && ((*arc)->delai + (*it2)->get_tready() > (cpt+1)))) {
 	      tmp.push_back(*it);
 	    }
 	  }
@@ -400,6 +450,7 @@ void Dfg::scheduling(){
     }
 
     if (tmp.size() == 1) {
+      tmp.front()->set_tready(cpt+1);
       new_order.push_back(tmp.front());
       add_node_now_ready();
       cpt++;
@@ -409,30 +460,157 @@ void Dfg::scheduling(){
     /* Règle 2 
        Instruction avec le poids le plus élevé
      */
+    
+    tmp2 = tmp;  // ici, tmp2 joue le rôle de _inst_ready dans la boucle précédente
+    tmp.clear();
+    tmp2.sort(compareWeight); // tri décroissant selon le poids
+    int poidsMax = tmp2.front()->get_weight();
+    tmp.push_back(tmp2.front());
+    it = tmp2.begin(); it++;  // on part du deuxième élem
+    for (unsigned int i = 1 ; i<tmp2.size() ; i++, it++) {
+      if ((*it)->get_weight() == poidsMax) {
+	tmp.push_back(*it);
+      }
+    }
 
+    if (tmp.size() == 1) {
+      tmp.front()->set_tready(cpt+1);
+      new_order.push_back(tmp.front());
+      add_node_now_ready();
+      cpt++;
+      continue;   // passage au tour du while suivant
+    }
+
+ 
     /* Règle 3
        Instruction avec la latence la plus élevée
      */
 
+    tmp2 = tmp;
+    tmp.clear();
+    tmp2.sort(compareLatency);  // tri décroissant selon la latence
+    int latenceMax = tmp2.front()->get_instruction()->get_latency();
+    tmp.push_back(tmp2.front());
+    it = tmp2.begin(); it++;  // on part du deuxième élem
+    for (unsigned int i = 1 ; i<tmp2.size() ; i++, it++) {
+      if ((*it)->get_instruction()->get_latency() == latenceMax) {
+	tmp.push_back(*it);
+      }
+    }
+
+    if (tmp.size() == 1) {
+      tmp.front()->set_tready(cpt+1);
+      new_order.push_back(tmp.front());
+      add_node_now_ready();
+      cpt++;
+      continue;   // passage au tour du while suivant
+    }
+
+
     /* Règle 4
        Instruction avec le plus grand nombre de successeurs
      */
+
+    tmp2 = tmp;
+    tmp.clear();
+    tmp2.sort(compareNbSucc);  // tri décroissant selon le nombre de successeurs
+    int nbSuccMax = tmp2.front()->get_nb_arcs();
+    tmp.push_back(tmp2.front());
+    it = tmp2.begin(); it++;  // on part du deuxième élem
+    for (unsigned int i = 1 ; i<tmp2.size() ; i++, it++) {
+      if ((*it)->get_nb_arcs() == nbSuccMax) {
+	tmp.push_back(*it);
+      }
+    }
+
+    if (tmp.size() == 1) {
+      tmp.front()->set_tready(cpt+1);
+      new_order.push_back(tmp.front());
+      add_node_now_ready();
+      cpt++;
+      continue;   // passage au tour du while suivant
+    }
     
     /* Règle 5
        Instruction avec le plus grand nombre de descendants
      */
+
+    tmp2 = tmp;
+    tmp.clear();
+    tmp2.sort(compareNbDesc);  // tri décroissant selon le nombre de descendants
+    int nbDescMax = tmp2.front()->get_nb_descendant();
+    tmp.push_back(tmp2.front());
+    it = tmp2.begin(); it++;  // on part du deuxième élem
+    for (unsigned int i = 1 ; i<tmp2.size() ; i++, it++) {
+      if ((*it)->get_nb_descendant() == nbDescMax) {
+	tmp.push_back(*it);
+      }
+    }
+
+    if (tmp.size() == 1) {
+      tmp.front()->set_tready(cpt+1);
+      new_order.push_back(tmp.front());
+      add_node_now_ready();
+      cpt++;
+      continue;   // passage au tour du while suivant
+    }
     
     /* Règle 6
        Instruction apparaissant en premier dans le code d'origine
      */
-    
+
+    tmp.sort(compareIndex);  // tri croissant selon l'index de l'instruction
+    tmp.front()->set_tready(cpt+1);
+    new_order.push_back(tmp.front());
+    add_node_now_ready();
     
     cpt++;
-    } // while
 
+    } // while
 
 }
 
+
+/*
+  Met le champ tready de tous les noeuds de la liste à la valeur val.
+*/
+void set_all_tready (list<Node_dfg*> *list, int val) {
+  list<Node_dfg*>::iterator it;
+
+  for (it = *list.begin() ; it != *list.end() ; i++) {
+    (*it)->set_tready(val);
+  }
+}
+
+
+/*
+  Calcule le nombre de cycles nécessaires à l'éxécution de cette liste
+  d'instructions.
+*/
+int Dfg::nb_cycles (list<Node_dfg*> *list) {
+  int cpt = 0;  // compteur du nombre de cycle
+  list<Node_dfg*>::iterator it = *list.begin();
+  list<Node_dfg*>::iterator prec = *list.begin();
+
+  set_all_tready(list, -1);
+
+  cpt++;  // on lance la première inst
+  it++;   // on part de la deuxième inst de la liste
+  
+  for (; it != *list.end() ; it++, prec++) {
+    //TODO
+
+
+    cpt++;
+
+
+  }
+
+
+
+
+  return cpt;
+}
 
 
 

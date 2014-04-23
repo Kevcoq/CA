@@ -179,7 +179,3 @@ static int t_delay[5][5]={
 };
 
 #endif
-
- 
-  
-

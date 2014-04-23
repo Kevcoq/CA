@@ -99,10 +99,6 @@ public:
 	int get_tready();
 
 
-	/* AJOUTS */
-	int get_when_scheduled ();
-	void scheduled (int num);
-
 
 private:
 	list <Arc_t *> _arc;
@@ -110,10 +106,7 @@ private:
 	Instruction * _inst; // instruction correspondante
 	int _nbr_descendant; // nombre de descendants
 	int _poids;   // poids dans le chemin critique
-	int _tready;  
-
-	// ajout
-	int _scheduled;
+	int _tready;  // cycle auquel l'instruction est lancée
 	
 };
 

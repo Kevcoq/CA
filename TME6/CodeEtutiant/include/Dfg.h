@@ -85,7 +85,9 @@ public:
 
 	void compute_nb_descendant();
 	void display_nb_descendant();
+	void add_node_now_ready();
 
+	int nb_cycles (list<Node_dfg*>*list);
 
 
 private:

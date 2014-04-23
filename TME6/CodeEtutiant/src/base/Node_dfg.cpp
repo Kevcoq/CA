@@ -4,7 +4,7 @@ Node_dfg::Node_dfg(Instruction* i1 ){
    _inst = i1;
    _nbr_descendant=0;
    _poids = 0;
-   _scheduled = -1;
+   _tready = -1;
 }
 
 Node_dfg::~Node_dfg(){
@@ -91,17 +91,4 @@ void Node_dfg::set_tready(int t){
 
 int Node_dfg::get_tready(){
    return _tready;
-}
-
-
-/* Ajout */
-// renvoie le numéro du cycle où le noeud a été schédulé
-// -1 si pas encore schedulé
-int Node_dfg::get_when_scheduled () {
-  return _scheduled;
-}
-
-// indique que le noeud est schédulé au cycle num
-void Node_dfg::scheduled (int num) {
-  _scheduled = num;
 }
