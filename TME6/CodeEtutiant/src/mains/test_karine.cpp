@@ -86,11 +86,11 @@ int main(int argc, char ** argv){
     fct -> comput_basic_block(); 
     fct -> comput_succ_pred_BB();
     //fct -> test(); 
+    */
     
     
     
-    
-    /* TEST DE LA CONSTRUCTION DES CFG et donc des succ/pred des BB *
+  /* TEST DE LA CONSTRUCTION DES CFG et donc des succ/pred des BB *
     p2.get_function(i)->display();
     p2.comput_CFG();
     Cfg * cfg = p2.get_CFG(i);
@@ -98,7 +98,7 @@ int main(int argc, char ** argv){
     sprintf(str, "./tmp/graph%d.dot", i);
     cfg -> restitution(NULL,"./tmp/graph2.dot");
   }
-  /**/
+  */
   
   return 0;
 }

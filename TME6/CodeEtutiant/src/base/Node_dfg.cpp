@@ -5,6 +5,7 @@ Node_dfg::Node_dfg(Instruction* i1 ){
    _nbr_descendant=0;
    _poids = 0;
    _tready = -1;
+   _traitee = -1;
 }
 
 Node_dfg::~Node_dfg(){
@@ -91,4 +92,14 @@ void Node_dfg::set_tready(int t){
 
 int Node_dfg::get_tready(){
    return _tready;
+}
+
+/* AJOUTS */
+
+void Node_dfg::set_traitee (int num) {
+  _traitee = num;
+}
+
+int Node_dfg::get_traitee () {
+  return _traitee;
 }

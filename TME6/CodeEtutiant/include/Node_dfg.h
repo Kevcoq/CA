@@ -98,6 +98,10 @@ public:
 */
 	int get_tready();
 
+	/* AJOUTS */
+	void set_traitee(int num);
+	int get_traitee();
+
 
 
 private:
@@ -107,6 +111,7 @@ private:
 	int _nbr_descendant; // nombre de descendants
 	int _poids;   // poids dans le chemin critique
 	int _tready;  // cycle auquel l'instruction est lancée
+	int _traitee;
 	
 };
 

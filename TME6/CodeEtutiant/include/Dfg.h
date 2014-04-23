@@ -88,7 +88,7 @@ public:
 	void add_node_now_ready();
 
 	int nb_cycles (list<Node_dfg*>*list);
-
+	void display_inst_ready();
 
 private:
 	Basic_block *_bb;

@@ -63,6 +63,7 @@ Dfg::Dfg(Basic_block *bb){
 	
 	
   // parcourt instruction
+  // TODO : pb ici les nop (add $0 $0 $0) sont pris dans les racines
   for(itmp=bb->get_first_instruction(); ; itmp = itmp->get_next()) {
 	
     // noeud      
@@ -72,7 +73,7 @@ Dfg::Dfg(Basic_block *bb){
     _noeuds[itmp->get_index()] = node;
 	    
     // prec
-    if(itmp->get_nb_pred() == 0) {
+    if(itmp->get_nb_pred() == 0 && !bb->is_delayed_slot(itmp)) {
       _roots.push_back(node);
     }  
 	    
@@ -340,9 +341,13 @@ void Dfg::compute_nb_descendant () {
 void Dfg::display_nb_descendant () {
   list <Node_dfg*>::iterator it = _roots.begin();
 
+  cout << "\n\nNbDescendants : \n";
+
   for (unsigned int i = 0 ; i<_roots.size() ; i++, it++) {
-    cout << *it << " : " << (*it)->get_nb_descendant();
+    cout << "i" << (*it)->get_instruction()->get_index() << " : " << (*it)->get_nb_descendant() << endl;
   }
+
+  cout << "\nFin\n\n";
 
 }
 
@@ -354,12 +359,12 @@ void Dfg::add_node_now_ready () {
   bool add;
 
   for (unsigned int i = 0 ; i<list_node_dfg.size() ; i++, it++) {
-    if (((*it)->get_tready() == -1) && !contains(&_inst_ready, *it)) {  // pas encore schedulé && pas déjà dans la liste
+    if (((*it)->get_traitee() == -1) && !contains(&_inst_ready, *it)) {  // pas encore schedulé && pas déjà dans la liste
       
       add = true;
       it2 = (*it)->pred_begin();  // iterator des prédécesseurs
       for (int j = 0 ; j<(*it)->nb_preds() ; j++, it2++) {
-	if ((*it2)->get_tready() == -1) {
+	if ((*it2)->get_traitee() == -1) {
 	  add = false;
 	}
       }
@@ -397,34 +402,32 @@ bool compareNbDesc (Node_dfg *n1, Node_dfg *n2) {
 bool compareIndex (Node_dfg *n1, Node_dfg *n2) {
   return n1->get_instruction()->get_index() > n2->get_instruction()->get_index();
 }
-
-
-/*
- * peut-être pb si les affectations de liste ne sont 
- * pas des copies (mais des pointeurs)...
- */	
-
-/*
-  TODO : changer tready par une autre variable
- */
 	
+
+/* TODO : corriger la règle n°1, normalement à la première itération, toutes les inst pretes doivent
+   aller dans tmp + autres bug (sur dep_inst.s, résultat faux) */
 void Dfg::scheduling(){
   /* FONCTION POUR LE PROJET */
 
-  // nombre de noeuds du graphe
-  int nb_node = _roots.size() + list_node_dfg.size() + _delayed_slot.size();
   int cpt = 0;
   list<Node_dfg*> tmp;
   list<Node_dfg*> tmp2;
-  list<Node_dfg*>::iterator it;
-  list<Node_dfg*>::iterator it2;
-  list<Arc_t*>::iterator arc;
-
+  list <Node_dfg*>::iterator it;
+  list <Node_dfg*>::iterator it2;
+  list <Arc_t*>::iterator arc;
+  
   // liste des instructions prêtes
-  _inst_ready = _roots;
+  _inst_ready.assign(_roots.begin(), _roots.end());
+  
+  while (_inst_ready.size() != 0) {
+    
+    if (!tmp.empty()) {
+      cout << "Instruction choisie : i" << tmp.front()->get_instruction()->get_index() << endl;
+    }
 
-  while (cpt < nb_node) {
     tmp.clear();
+
+    display_inst_ready();
 
     /* A chaque règle, on insert dans tmp les instructions qui satisfont la règle,
        s'il n'y en a plus qu'une, alors c'est celle-là ! sinon règle suivante */
@@ -441,7 +444,7 @@ void Dfg::scheduling(){
 	arc = (*it2)->arcs_begin();
 	for (int k = 0 ; k<(*it2)->get_nb_arcs() ; k++, arc++) {
 	  if ((*arc)->next == *it) {
-	    if (!(((*arc)->delai != -1) && ((*arc)->delai + (*it2)->get_tready() > (cpt+1)))) {
+	    if (!(((*arc)->delai != -1) && ((*arc)->delai + (*it2)->get_traitee() > (cpt+1)))) {
 	      tmp.push_back(*it);
 	    }
 	  }
@@ -450,18 +453,25 @@ void Dfg::scheduling(){
     }
 
     if (tmp.size() == 1) {
-      tmp.front()->set_tready(cpt+1);
+      tmp.front()->set_traitee(cpt+1);
       new_order.push_back(tmp.front());
+      _inst_ready.remove(tmp.front());
       add_node_now_ready();
       cpt++;
       continue;   // passage au tour du while suivant
+    } else if (tmp.size() == 0) {
+      // si tmp.size() = 0, cela veut dire que toutes les instructions provoquent un cycle de gel
+      tmp.assign(_inst_ready.begin(), _inst_ready.end());
     }
+    
     
     /* Règle 2 
        Instruction avec le poids le plus élevé
-     */
+    */
     
-    tmp2 = tmp;  // ici, tmp2 joue le rôle de _inst_ready dans la boucle précédente
+    tmp2.clear();
+    tmp2.assign(tmp.begin(), tmp.end());  // ici, tmp2 joue le rôle de _inst_ready dans la boucle précédente 
+    
     tmp.clear();
     tmp2.sort(compareWeight); // tri décroissant selon le poids
     int poidsMax = tmp2.front()->get_weight();
@@ -474,8 +484,9 @@ void Dfg::scheduling(){
     }
 
     if (tmp.size() == 1) {
-      tmp.front()->set_tready(cpt+1);
+      tmp.front()->set_traitee(cpt+1);
       new_order.push_back(tmp.front());
+      _inst_ready.remove(tmp.front());
       add_node_now_ready();
       cpt++;
       continue;   // passage au tour du while suivant
@@ -486,7 +497,8 @@ void Dfg::scheduling(){
        Instruction avec la latence la plus élevée
      */
 
-    tmp2 = tmp;
+    tmp2.clear();
+    tmp2.assign(tmp.begin(), tmp.end());
     tmp.clear();
     tmp2.sort(compareLatency);  // tri décroissant selon la latence
     int latenceMax = tmp2.front()->get_instruction()->get_latency();
@@ -499,8 +511,9 @@ void Dfg::scheduling(){
     }
 
     if (tmp.size() == 1) {
-      tmp.front()->set_tready(cpt+1);
+      tmp.front()->set_traitee(cpt+1);
       new_order.push_back(tmp.front());
+      _inst_ready.remove(tmp.front());
       add_node_now_ready();
       cpt++;
       continue;   // passage au tour du while suivant
@@ -511,7 +524,8 @@ void Dfg::scheduling(){
        Instruction avec le plus grand nombre de successeurs
      */
 
-    tmp2 = tmp;
+    tmp2.clear();
+    tmp2.assign(tmp.begin(), tmp.end());
     tmp.clear();
     tmp2.sort(compareNbSucc);  // tri décroissant selon le nombre de successeurs
     int nbSuccMax = tmp2.front()->get_nb_arcs();
@@ -524,8 +538,9 @@ void Dfg::scheduling(){
     }
 
     if (tmp.size() == 1) {
-      tmp.front()->set_tready(cpt+1);
+      tmp.front()->set_traitee(cpt+1);
       new_order.push_back(tmp.front());
+      _inst_ready.remove(tmp.front());
       add_node_now_ready();
       cpt++;
       continue;   // passage au tour du while suivant
@@ -535,7 +550,8 @@ void Dfg::scheduling(){
        Instruction avec le plus grand nombre de descendants
      */
 
-    tmp2 = tmp;
+    tmp2.clear();
+    tmp2.assign(tmp.begin(), tmp.end());
     tmp.clear();
     tmp2.sort(compareNbDesc);  // tri décroissant selon le nombre de descendants
     int nbDescMax = tmp2.front()->get_nb_descendant();
@@ -548,8 +564,9 @@ void Dfg::scheduling(){
     }
 
     if (tmp.size() == 1) {
-      tmp.front()->set_tready(cpt+1);
+      tmp.front()->set_traitee(cpt+1);
       new_order.push_back(tmp.front());
+      _inst_ready.remove(tmp.front());
       add_node_now_ready();
       cpt++;
       continue;   // passage au tour du while suivant
@@ -560,8 +577,9 @@ void Dfg::scheduling(){
      */
 
     tmp.sort(compareIndex);  // tri croissant selon l'index de l'instruction
-    tmp.front()->set_tready(cpt+1);
+    tmp.front()->set_traitee(cpt+1);
     new_order.push_back(tmp.front());
+    _inst_ready.remove(tmp.front());
     add_node_now_ready();
     
     cpt++;
@@ -572,13 +590,13 @@ void Dfg::scheduling(){
 
 
 /*
-  Met le champ tready de tous les noeuds de la liste à la valeur val.
+  Met le champ _traitee de tous les noeuds de la liste à la valeur val.
 */
-void set_all_tready (list<Node_dfg*> *list, int val) {
-  list<Node_dfg*>::iterator it;
+void set_all_traitee (list<Node_dfg*> *liste, int val) {
+  list <Node_dfg*>::iterator it;
 
-  for (it = *list.begin() ; it != *list.end() ; i++) {
-    (*it)->set_tready(val);
+  for (it = (*liste).begin() ; it != (*liste).end() ; it++) {
+    (*it)->set_traitee(val);
   }
 }
 
@@ -587,41 +605,70 @@ void set_all_tready (list<Node_dfg*> *list, int val) {
   Calcule le nombre de cycles nécessaires à l'éxécution de cette liste
   d'instructions.
 */
-int Dfg::nb_cycles (list<Node_dfg*> *list) {
-  int cpt = 0;  // compteur du nombre de cycle
-  list<Node_dfg*>::iterator it = *list.begin();
-  list<Node_dfg*>::iterator prec = *list.begin();
+int Dfg::nb_cycles (list<Node_dfg*> *liste) {
+  int cpt = 1;  // compteur du nombre de cycle
+  list <Node_dfg*>::iterator it;
+  list <Node_dfg*>::iterator prec;
+  int delai;
 
-  set_all_tready(list, -1);
+  it = (*liste).begin();
+  prec = (*liste).begin();
+
+  set_all_traitee(liste, -1);
 
   cpt++;  // on lance la première inst
+  (*it)->set_traitee(1);
   it++;   // on part de la deuxième inst de la liste
   
-  for (; it != *list.end() ; it++, prec++) {
-    //TODO
+  for (; it != (*liste).end() ; it++) {
+    for (; prec != (*liste).begin() ; prec--) {
+      if ((*it)->get_instruction()->is_dep_RAW((*prec)->get_instruction())) {
+	delai = t_delay[((*prec)->get_instruction()->get_type())][((*it)->get_instruction()->get_type())];
+	if (delai != -1) {
+	  while ((*prec)->get_traitee() + delai < cpt) {
+	    cpt++;
+	  }
+	}
+      }
+      (*it)->set_traitee(cpt);
+    }
 
-
+    prec = it;
     cpt++;
-
-
   }
-
-
-
 
   return cpt;
 }
 
 
 
+void Dfg::display_inst_ready () {
+  list <Node_dfg*>::iterator it;
+  
+  cout << "\nInstructions ready : \n";
+  
+  for(it = _inst_ready.begin(); it != _inst_ready.end(); it++){
+    cout << "i" << (*it)->get_instruction()->get_index() << endl;
+  }
+
+  cout << "Fin\n";
+  
+}
+
 
 	
 void Dfg::display_sheduled_instr(){
   list <Node_dfg*>::iterator it;
   Instruction *inst;
+  
+  cout << "\n\nScheduled Order :\n";
+  
   for(it=new_order.begin(); it!=new_order.end(); it++){
     inst=(*it)->get_instruction();
     cout<<"i"<<inst->get_index()<<": "<<inst->get_content()<<endl;
   }
+
+  cout << "\nFin\n\n";
+
 }
 	
