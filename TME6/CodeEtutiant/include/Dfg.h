@@ -88,6 +88,8 @@ public:
 	void add_node_now_ready();
 
 	int nb_cycles (list<Node_dfg*>*list);
+	// TODO kevin
+	int nb_cycles2();
 	void display_inst_ready();
 
 private:

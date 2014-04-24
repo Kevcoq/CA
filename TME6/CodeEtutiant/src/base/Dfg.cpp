@@ -381,8 +381,9 @@ void Dfg::add_node_now_ready () {
  * Sert pour le tri.
  * On fait bien < car on tri dans l'ordre décroissant.
  */
+// TODO Kevin : on inverse le sens et youpi 
 bool compareWeight (Node_dfg *n1, Node_dfg *n2) {
-  return n1->get_weight() < n2->get_weight();
+  return n1->get_weight() > n2->get_weight();
 }
 
 bool compareLatency (Node_dfg *n1, Node_dfg *n2) {
@@ -458,6 +459,7 @@ void Dfg::scheduling(){
       _inst_ready.remove(tmp.front());
       add_node_now_ready();
       cpt++;
+      cout << "regle 1\n";
       continue;   // passage au tour du while suivant
     } else if (tmp.size() == 0) {
       // si tmp.size() = 0, cela veut dire que toutes les instructions provoquent un cycle de gel
@@ -489,6 +491,7 @@ void Dfg::scheduling(){
       _inst_ready.remove(tmp.front());
       add_node_now_ready();
       cpt++;
+      cout << "regle 2\n";
       continue;   // passage au tour du while suivant
     }
 
@@ -516,6 +519,7 @@ void Dfg::scheduling(){
       _inst_ready.remove(tmp.front());
       add_node_now_ready();
       cpt++;
+      cout << "regle 3\n";
       continue;   // passage au tour du while suivant
     }
 
@@ -543,6 +547,7 @@ void Dfg::scheduling(){
       _inst_ready.remove(tmp.front());
       add_node_now_ready();
       cpt++;
+      cout << "regle 4\n";
       continue;   // passage au tour du while suivant
     }
     
@@ -569,6 +574,7 @@ void Dfg::scheduling(){
       _inst_ready.remove(tmp.front());
       add_node_now_ready();
       cpt++;
+      cout << "regle 5\n";
       continue;   // passage au tour du while suivant
     }
     
@@ -581,6 +587,7 @@ void Dfg::scheduling(){
     new_order.push_back(tmp.front());
     _inst_ready.remove(tmp.front());
     add_node_now_ready();
+    cout << "regle 6\n";
     
     cpt++;
 
@@ -640,6 +647,14 @@ int Dfg::nb_cycles (list<Node_dfg*> *liste) {
   return cpt;
 }
 
+// TODO kevin : comment accede t-on a la liste sinon ?
+// on calcule bien le nbr de cycle apres le sheduling ?
+// sinon faudra m'expliquer :)
+int Dfg::nb_cycles2 () {
+    return nb_cycles(&new_order);
+}
+
+  
 
 
 void Dfg::display_inst_ready () {

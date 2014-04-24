@@ -29,7 +29,7 @@ int main ( int argc, char ** argv ) {
     dfg->display_nb_descendant();
     dfg->scheduling();
     dfg->display_sheduled_instr();
-
+    cout << "temps critique scheduler : " << dfg->nb_cycles2() << "\n\n\n";
     //
     
   }
