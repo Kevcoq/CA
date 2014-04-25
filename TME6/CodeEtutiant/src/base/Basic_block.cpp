@@ -392,6 +392,79 @@ int Basic_block::nb_cycles(){
 }
 
 
+void Basic_block::renomme(int num_reg, Instruction* inst, int reg_libre) {
+  // iteration
+  Instruction* it = inst;
+
+  // boucle vrai
+  while(true) {
+    // nbr d'operand
+    int nbOp = inst->get_nbOp();
+
+    // pour chaque operand, on verifie si c'est un registre 
+    // si oui, si il a le meme num que celui de ref
+    // on le remplace par le reg libre
+    if(nbOp > 0) {
+      Operand* tmp = inst->get_op1();
+      if(tmp->get_op_type() == Reg) {
+	OPRegister* reg_tmp = (dynamic_cast< OPRegister * > (tmp));
+	if(reg_tmp->get_reg() == num_reg)
+	  reg_tmp->set_reg(reg_libre);
+      }
+    }
+
+    if(nbOp > 1) {
+      Operand* tmp = inst->get_op2();
+      if(tmp->get_op_type() == Reg) {
+	OPRegister* reg_tmp = (dynamic_cast< OPRegister * > (tmp));
+	if(reg_tmp->get_reg() == num_reg)
+	  reg_tmp->set_reg(reg_libre);
+      }
+    }
+
+    if(nbOp > 2) {
+      Operand* tmp = inst->get_op3();
+      if(tmp->get_op_type() == Reg) {
+	OPRegister* reg_tmp = (dynamic_cast< OPRegister * > (tmp));
+	if(reg_tmp->get_reg() == num_reg)
+	  reg_tmp->set_reg(reg_libre);
+      }
+    }
+
+    // on a fini, on sort
+    if(it == get_first_instruction())
+      break;
+    it = it->get_prev();
+  }
+}
+
+// renomme les registres redefini par la suite
+// list est une liste de registre utilisable
+void Basic_block::register_rename(list <int> list){
+  // on commence par la fin
+  Instruction* it = get_last_instruction();
+  while(!list.empty() && it != get_first_instruction()) {
+    Instruction* it2 = it->get_prev();
+    while(!list.empty()) {
+      if(it->is_dependant(it2) == WAW && it->get_op1()->get_op_type() == Reg) {
+	int tmp = list.front();
+	list.pop_front();
+	OPRegister* reg= (dynamic_cast< OPRegister * > (it->get_op1()));
+	
+	renomme(reg->get_reg(), it2, tmp);
+      }
+      // si on a atteint le debut, on arrete
+      if(it2 == get_first_instruction())
+	break;
+      it2 = it2->get_prev();
+    }
+
+    // Iteration
+    it = it->get_prev();
+  }
+}
+
+
 
 /* permet de tester des choses sur un bloc de base, par exemple permet d'afficher les BB successeurs et prédécesseurs (commentaire),  là ne fait rien qu'afficher le BB */
 void Basic_block::test(){

@@ -100,5 +100,24 @@ int main(int argc, char ** argv){
   }
   */
   
+
+
+
+
+  /* TEST DU RENNOMAGE DE REGISTRE */    
+  Basic_block *bb = fct -> get_BB(1); 
+  printf("Rennomage BB - %d\n", 0);
+  list<int> list;
+  for(int i = 32; i < 43; i++)
+    list.push_back(i);
+  printf("Avant \n");
+  bb->display();
+  printf("\n");
+  bb->register_rename(list);
+  printf("Apres \n");
+  bb->display();
+  printf("\n");
+  
+
   return 0;
 }

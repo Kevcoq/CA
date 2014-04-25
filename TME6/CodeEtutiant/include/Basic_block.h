@@ -158,9 +158,15 @@ public:
    bool is_delayed_slot(Instruction*);	
    
   
- /**	\brief	gives the number of cycles to execute all instruction in this
+   /**	\brief	gives the number of cycles to execute all instruction in this
 */  
    int nb_cycles();
+
+  
+   /** \brief   renomme les registres redefini
+    */
+   void renomme(int, Instruction* , int);
+   void register_rename(list <int>);
    
    
 /**	\brief	this method is to be used to test other methods
