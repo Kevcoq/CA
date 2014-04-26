@@ -63,7 +63,6 @@ Dfg::Dfg(Basic_block *bb){
 	
 	
   // parcourt instruction
-  // TODO : pb ici les nop (add $0 $0 $0) sont pris dans les racines
   for(itmp=bb->get_first_instruction(); ; itmp = itmp->get_next()) {
 	
     // noeud      
@@ -71,7 +70,7 @@ Dfg::Dfg(Basic_block *bb){
     list_node_dfg.push_back(node);
     _read[itmp->get_index()] = 1;
     _noeuds[itmp->get_index()] = node;
-	    
+
     // prec
     if(itmp->get_nb_pred() == 0 && !bb->is_delayed_slot(itmp)) {
       _roots.push_back(node);
@@ -352,7 +351,9 @@ void Dfg::display_nb_descendant () {
 }
 
 
+
 // Ajoute dans _inst_ready les nouveaux noeuds prêts
+bool delayed_slot_ajoute = false;
 void Dfg::add_node_now_ready () {
   list<Node_dfg*>::iterator it = list_node_dfg.begin();
   list<Node_dfg*>::iterator it2;
@@ -373,15 +374,18 @@ void Dfg::add_node_now_ready () {
       }
     }
   }
+
+  // quand toutes les instructions sont passées, on ajoute le delayed slot s'il y en a un
+  if (!delayed_slot_ajoute && !_delayed_slot.empty() && _inst_ready.empty()) {
+    _inst_ready.push_back(_delayed_slot.front());
+    delayed_slot_ajoute = true;
+  }
+
 }
 
 
-/*
- * Renvoie true si poids(n1) < poids(n2).
- * Sert pour le tri.
- * On fait bien < car on tri dans l'ordre décroissant.
- */
 // TODO Kevin : on inverse le sens et youpi 
+// DONE
 bool compareWeight (Node_dfg *n1, Node_dfg *n2) {
   return n1->get_weight() > n2->get_weight();
 }
@@ -392,7 +396,7 @@ bool compareLatency (Node_dfg *n1, Node_dfg *n2) {
 
 /* Le nombre de successeurs directs est le nombre d'arcs */
 bool compareNbSucc (Node_dfg *n1, Node_dfg *n2) {
-  return n1->get_nb_arcs() < n2->get_nb_arcs();
+  return n1->get_nb_arcs() > n2->get_nb_arcs();
 }
 
 bool compareNbDesc (Node_dfg *n1, Node_dfg *n2) {
@@ -405,8 +409,6 @@ bool compareIndex (Node_dfg *n1, Node_dfg *n2) {
 }
 	
 
-/* TODO : corriger la règle n°1, normalement à la première itération, toutes les inst pretes doivent
-   aller dans tmp + autres bug (sur dep_inst.s, résultat faux) */
 void Dfg::scheduling(){
   /* FONCTION POUR LE PROJET */
 
@@ -416,6 +418,7 @@ void Dfg::scheduling(){
   list <Node_dfg*>::iterator it;
   list <Node_dfg*>::iterator it2;
   list <Arc_t*>::iterator arc;
+
   
   // liste des instructions prêtes
   _inst_ready.assign(_roots.begin(), _roots.end());

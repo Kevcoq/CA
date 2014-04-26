@@ -377,14 +377,22 @@ void Basic_block::set_link_succ_pred(Basic_block* succ){
    succ->set_predecessor(this);
 }
 
+/*
 bool Basic_block::is_delayed_slot(Instruction *i){
-   if (get_branch()== NULL)
-      return false;
-   int j = (dynamic_cast<Instruction *> (get_branch()->get_line()))->get_index();
-   // cout << "index saut : " << j << " index instruction " << i-> get_index() << endl;
-   return (j < i-> get_index());
-
+  if (get_branch()== NULL) 
+    return false;
+  int j = (dynamic_cast<Instruction *> (get_branch()->get_line()))->get_index();
+  // cout << "index saut : " << j << " index instruction " << i-> get_index() << endl;
+  return (j < i-> get_index());
 }
+*/
+
+// version personnelle
+bool Basic_block::is_delayed_slot(Instruction *i){
+  return get_instruction_at_index(i->get_index() - 1)->is_branch();
+}
+
+
 
 
 int Basic_block::nb_cycles(){
