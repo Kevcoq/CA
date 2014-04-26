@@ -117,7 +117,6 @@ int main(int argc, char ** argv){
   printf("Apres \n");
   bb->display();
   printf("\n");
-  
 
   return 0;
 }

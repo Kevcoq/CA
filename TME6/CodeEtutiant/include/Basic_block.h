@@ -165,7 +165,7 @@ public:
   
    /** \brief   renomme les registres redefini
     */
-   void renomme(int, Instruction* , int);
+   void renomme(int, Instruction* , Instruction*, int);
    void register_rename(list <int>);
    
    

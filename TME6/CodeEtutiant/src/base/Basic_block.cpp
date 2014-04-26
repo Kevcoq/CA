@@ -400,15 +400,19 @@ int Basic_block::nb_cycles(){
 }
 
 
-void Basic_block::renomme(int num_reg, Instruction* inst, int reg_libre) {
+void Basic_block::renomme(int num_reg, Instruction* instDeb, Instruction *instFin, int reg_libre) {
   // iteration
-  Instruction* it = inst;
+  Instruction* inst = instDeb;
+
+  cout << "Renommage de $" << num_reg << " par $" << reg_libre << " de i" << instDeb->get_index() << " a i" << instFin->get_index() << endl;
 
   // boucle vrai
   while(true) {
+    
+    
     // nbr d'operand
     int nbOp = inst->get_nbOp();
-
+    
     // pour chaque operand, on verifie si c'est un registre 
     // si oui, si il a le meme num que celui de ref
     // on le remplace par le reg libre
@@ -440,9 +444,9 @@ void Basic_block::renomme(int num_reg, Instruction* inst, int reg_libre) {
     }
 
     // on a fini, on sort
-    if(it == get_first_instruction())
+    if(inst == instFin)
       break;
-    it = it->get_prev();
+    inst = inst->get_prev();
   }
 }
 
@@ -453,24 +457,49 @@ void Basic_block::register_rename(list <int> list){
   Instruction* it = get_last_instruction();
   while(!list.empty() && it != get_first_instruction()) {
     Instruction* it2 = it->get_prev();
+
     while(!list.empty()) {
-      if(it->is_dependant(it2) == WAW && it->get_op1()->get_op_type() == Reg) {
+
+      if (it->get_reg_dst() != NULL) {  // si it écrit dans un registre
+	int num = it->get_reg_dst()->get_reg();
+
+	while (it2 != get_first_instruction()) {
+	  if (it2->writes_in(num) && it2 != it->get_prev()) {
+	    cout << "Trouve entre i" << it->get_index() << " et i" << it2->get_index() << "\n";
+	    int tmp = list.front();
+	    list.pop_front();
+	    // OPRegister* reg= (dynamic_cast< OPRegister * > (it->get_op1()));
+	    renomme(num /*reg->get_reg() */, it, it2, tmp);
+	    break;
+	  }
+	  
+	  it2 = it2->get_prev();
+	}
+      }
+      
+      break;
+      /*
+	
+	if(it->is_dependant(it2) == WAW && it->get_op1()->get_op_type() == Reg) {
 	int tmp = list.front();
 	list.pop_front();
 	OPRegister* reg= (dynamic_cast< OPRegister * > (it->get_op1()));
 	
+	cout << "WAW entre i" << it->get_index() << " (" << it->get_content() << ") et i" << it2->get_index() << " (" << it2->get_content() << ")\n";
 	renomme(reg->get_reg(), it2, tmp);
-      }
+      } 
+      */
       // si on a atteint le debut, on arrete
       if(it2 == get_first_instruction())
 	break;
       it2 = it2->get_prev();
-    }
+      } 
 
     // Iteration
     it = it->get_prev();
   }
 }
+
 
 
 
