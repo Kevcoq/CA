@@ -384,8 +384,6 @@ void Dfg::add_node_now_ready () {
 }
 
 
-// TODO Kevin : on inverse le sens et youpi 
-// DONE
 bool compareWeight (Node_dfg *n1, Node_dfg *n2) {
   return n1->get_weight() > n2->get_weight();
 }
@@ -403,7 +401,6 @@ bool compareNbDesc (Node_dfg *n1, Node_dfg *n2) {
   return n1->get_nb_descendant() < n2->get_nb_descendant();
 }
 
-/* ATTENTION, ce tri est CROISSANT */
 bool compareIndex (Node_dfg *n1, Node_dfg *n2) {
   return n1->get_instruction()->get_index() > n2->get_instruction()->get_index();
 }
@@ -650,9 +647,7 @@ int Dfg::nb_cycles (list<Node_dfg*> *liste) {
   return cpt;
 }
 
-// TODO kevin : comment accede t-on a la liste sinon ?
-// on calcule bien le nbr de cycle apres le sheduling ?
-// sinon faudra m'expliquer :)
+// calcule le nombre de cycles de la liste new_order
 int Dfg::nb_cycles2 () {
     return nb_cycles(&new_order);
 }

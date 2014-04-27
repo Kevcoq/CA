@@ -489,8 +489,6 @@ void Basic_block::register_rename(list <int> list){
 	  break;
       }
     }
-      
-    /*	if(it->is_dependant(it2) == WAW && it->get_op1()->get_op_type() == Reg) {	int tmp = list.front();	list.pop_front();OPRegister* reg= (dynamic_cast< OPRegister * > (it->get_op1()));	cout << "WAW entre i" << it->get_index() << " (" << it->get_content() << ") et i" << it2->get_index() << " (" << it2->get_content() << ")\n";	renomme(reg->get_reg(), it2, tmp);      }       */
     
     // Iteration
     it = it->get_prev();

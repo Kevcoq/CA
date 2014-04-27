@@ -110,7 +110,7 @@ private:
 	Instruction * _inst; // instruction correspondante
 	int _nbr_descendant; // nombre de descendants
 	int _poids;   // poids dans le chemin critique
-	int _tready;  // cycle auquel l'instruction est lancée
+	int _tready;  
 	int _traitee;
 	
 };
