@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['cfg',['Cfg',['../class_cfg.html',1,'']]]
+  ['cfg',['Cfg',['../classCfg.html',1,'']]]
 ];

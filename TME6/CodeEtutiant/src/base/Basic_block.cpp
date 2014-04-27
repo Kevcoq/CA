@@ -382,7 +382,6 @@ void Basic_block::set_link_succ_pred(Basic_block* succ){
   if (get_branch()== NULL) 
   return false;
   int j = (dynamic_cast<Instruction *> (get_branch()->get_line()))->get_index();
-  // cout << "index saut : " << j << " index instruction " << i-> get_index() << endl;
   return (j < i-> get_index());
   }
 */

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['function',['Function',['../class_function.html',1,'']]]
+  ['function',['Function',['../classFunction.html',1,'']]]
 ];
